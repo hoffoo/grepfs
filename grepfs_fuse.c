@@ -70,9 +70,9 @@ static int grepfs_read(const char *path, char *buf, size_t size, off_t offset, s
     char* res; 
     while ((res = match(path, f)) != NULL) {
         if (strlen(res) > 0) {
+            buf = realloc(buf, strlen(res)+1);
             memcpy(buf, res, strlen(res)+1);
-            free(res);
-            break;
+            break; // found a match, break
         }
     }
 
