@@ -70,7 +70,7 @@ static int grepfs_read(const char *path, char *buf, size_t size, off_t offset, s
     char* res; 
     while ((res = match(path, f)) != NULL) {
         if (strlen(res) > 0) {
-            memcpy(buf, res, strlen(res));
+            memcpy(buf, res, strlen(res)+1);
             free(res);
             break;
         }
