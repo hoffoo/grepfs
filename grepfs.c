@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include "grepfs.h"
-#include "grep.h"
 
 // real path of "mounted" file
 const char *help = "missing arguments\n";

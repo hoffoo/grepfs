@@ -6,13 +6,43 @@
 #include <stdlib.h>
 
 #include "grepfs.h"
-#include "grep.h"
 
 // default filesize for getattr
 #define FSIZE 100
 
 // real path of "mounted" file
 char *fpath = NULL;
+
+// match line in file
+char* match(const char* regex, FILE* f)
+{
+    char* buf = NULL;
+    size_t len = 0;
+    size_t read = getline(&buf, &len, f);
+
+    if (read == -1 || buf == NULL) {
+        free(buf);
+        return NULL;
+    }
+    
+    int match = strlen(regex);
+    int k = 0;
+    int i = 0;
+    for(; k < len; k++) {
+        for (; i < match; i++) {
+            if (regex[i] != buf[k]) {
+                break;
+            }
+
+            if (i == match - 1) {
+                return buf;
+            }
+        }
+    }
+
+    free(buf);
+    return "";
+}
 
 static int grepfs_getattr(const char *path, struct stat *stbuf)
 {
@@ -30,25 +60,25 @@ static int grepfs_getattr(const char *path, struct stat *stbuf)
 
 static int grepfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
+    // remove leading /
     path++;
     FILE *f = fopen(fpath, "r");
     if (f == NULL) {
-        memcpy(buf, "fail!!\n", 6);
-        return 6;
+        return 0;
     }
 
-    char res = grep(buf, path, f);
-    //if (buf == NULL) {
-    //    memcpy(buf, "res", 3);
-    //    return 3;
-    //}
+    char* res; 
+    while ((res = match(path, f)) != NULL) {
+        if (strlen(res) > 0) {
+            memcpy(buf, res, strlen(res));
+            free(res);
+            break;
+        }
+    }
 
     fclose(f);
 
-    memcpy(buf, &res, strlen(&res));
-
-    return strlen(&res);
-    //return 4;
+    return strlen(buf);
 }
 
 static int grepfs_open(const char *path, struct fuse_file_info *fi)
